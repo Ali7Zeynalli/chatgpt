@@ -1,0 +1,44 @@
+Adım: "requests" kütüphanesi ile internette arama yapılır. Örnek olarak "malware sample" gibi anahtar kelimeler kullanılabilir.
+
+Adım: Arama sonuçlarındaki sayfalar "beautifulsoup4" ile parse edilir. Bu sayfalarda, zararlı yazılım kodlarının bulunduğu bağlantılar aranır.
+
+Adım: Bulunan bağlantılar üzerinden indirilen kodlar "re" kütüphanesi ile incelenir. Bu kodlar içinde, zararlı yazılımın nasıl çalıştığını, hangi verileri topladığını veya hangi fonksiyonları çalıştırdığını belirlemek için arama yapılabilir.
+
+Adım: Bulunan bilgiler rapor halinde dökümantasyon yapılabilir.
+
+
+
+
+
+import requests
+from bs4 import BeautifulSoup
+import re
+
+# Step 1: Search for malware samples on the internet
+search_query = "malware sample"
+url = f"https://www.google.com/search?q={search_query}"
+response = requests.get(url)
+soup = BeautifulSoup(response.text, "html.parser")
+
+# Step 2: Parse the search results and find links to malware sample codes
+links = []
+for link in soup.find_all("a"):
+    href = link.get("href")
+    if href.startswith("/url?q="):
+        links.append(href[7:])
+
+# Step 3: Analyze the downloaded malware sample codes
+for link in links:
+    response = requests.get(link)
+    code = response.text
+    # Search for specific patterns in the code
+    if "system(" in code:
+        print(f"Possible command injection found in {link}")
+    if re.search(r"\b(password|username|credit_card)\b", code):
+        print(f"Possible data exfiltration found in {link}")
+
+# Step 4: Document the findings
+with open("report.txt", "w") as f:
+    for link in links:
+        f.write(link + "\n")
+
